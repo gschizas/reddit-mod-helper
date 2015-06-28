@@ -54,7 +54,7 @@ def reddit_agent():
     r.config.log_requests = 2
     cfg = configparser.ConfigParser()
     logging.info(os.getcwd())
-    with open('bot.ini') as f:
+    with open(os.path.join(os.getenv('OPENSHIFT_REPO_DIR'), 'bot.ini')) as f:
         cfg.read_file(f)
 
     # print(request.headers)
