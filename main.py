@@ -52,6 +52,7 @@ def reddit_agent():
     r.config.decode_html_entities = True
     r.config.log_requests = 2
     cfg = configparser.ConfigParser()
+    logging.info(os.getcwd())
     with open('bot.ini') as f:
         cfg.read_file(f)
 
