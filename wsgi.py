@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 
 def application(environ, start_response):
 
@@ -273,6 +274,7 @@ $ git push</pre>
 
           </section>
         </div>
+        ''' + sys.version + '''
 
         <footer>
           <div class="logo"><a href="https://www.openshift.com/"></a></div>
