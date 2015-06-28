@@ -7,6 +7,7 @@ import io
 import logging
 import urllib.parse
 import re
+import os
 
 import PIL
 import PIL.Image
