@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 
+from SqliteSession import SqliteSessionInterface
 from main import app as application
+
+global first_run
+app.session_interface = SqliteSessionInterface()
+first_run = True
+
+
 
 # import os
 # import sys
