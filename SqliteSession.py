@@ -26,7 +26,7 @@ class SqliteSession(MutableMapping, SessionMixin):
         self.sid = sid
         self.modified = False
         self.conn = None
-        if not os.path.exists(self._db_filename):
+        if not os.path.exists(self._db_filename()):
             with self._get_conn() as conn:
                 conn.execute(self._create_sql)
                 self.new = True
@@ -67,7 +67,7 @@ class SqliteSession(MutableMapping, SessionMixin):
 
     def _get_conn(self):
         if not self.conn:
-            self.conn = sqlite3.Connection(self._db_filename)
+            self.conn = sqlite3.Connection(self._db_filename())
         return self.conn
 
     def _db_filename(self):
