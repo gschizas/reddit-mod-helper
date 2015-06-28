@@ -20,6 +20,8 @@ from SqliteSession import SqliteSessionInterface
 
 app = Flask(__name__)
 app.secret_key = 'mNQNveTK5DmSyjTJJfQ4bYzd6vvBPUjj'
+app.session_interface = SqliteSessionInterface()
+first_run = True
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -398,9 +400,6 @@ def index():
 
 
 def main():
-    global first_run
-    app.session_interface = SqliteSessionInterface()
-    first_run = True
     app.run(port=5007, host='0.0.0.0', debug=True)
 
 
