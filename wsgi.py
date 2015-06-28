@@ -3,7 +3,7 @@
 error = '---'
 
 try:
-  from modhelper import main.app as application
+  from modhelper.main import app as application
 except Exception as e:
   error = e
 
