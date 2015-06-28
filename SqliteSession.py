@@ -71,8 +71,8 @@ class SqliteSession(MutableMapping, SessionMixin):
         return self.conn
 
     def _db_filename(self):
-        filename = '/tmp/session.db'
-        return 
+        filename = os.path.join(os.getenv('OPENSHIFT_DATA_DIR'), 'session.db')
+        return filename
 
     # These proxy classes are needed in order
     # for this session implementation to work properly. 
