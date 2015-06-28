@@ -1,0 +1,50 @@
+{% extends "_main.html" %}
+{% from "_helpers.html" import render_field, render_pagination %}
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h2 class="panel-title">Flair Management</h2>
+        </div>
+        <div class="table-responsive">
+            <form method="post" action="{{ url_for('change_flair', subreddit=subreddit) }}">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th rowspan="2">id</th>
+                        <th rowspan="2">Title</th>
+                        <th colspan="3">Link Flair</th>
+                    </tr>
+                    <tr>
+                        <th>CSS</th>
+                        <th>Text</th>
+                        <th>Select</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in submissions %}
+                        <tr>
+                            <td><a href="{{ item.short_link }}">{{ item.id }}</a></td>
+                            {% if item.is_self %}
+                                <td>{{ item.title }}
+                                    <hr>
+                                    {{ item.selftext_html | safe }}</td>
+                            {% else %}
+                                <td><a href="{{ item.url }}">{{ item.title }}</a></td>
+                            {% endif %}
+                            <td>{{ item.flair_text }}</td>
+                            <td>{{ item.flair_css_class }}</td>
+                            <td><select name="flair_{{ item.id }}">
+                                <option value="">--None--</option>
+                                {% for flair in flairs %}
+                                    <option value="{{ flair['flair_template_id'] }}">{{ flair['flair_text'] }}</option>
+                                {% endfor %}
+                            </select></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <input type="submit" value="Change Flair"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

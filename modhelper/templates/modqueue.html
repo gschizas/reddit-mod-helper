@@ -1,0 +1,73 @@
+{% extends "_main.html" %}
+{% from "_helpers.html" import render_field, render_pagination %}
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h2 class="panel-title">Mod Queue Management</h2>
+        </div>
+        <div class="table-responsive">
+            <form method="post" action="{{ url_for('modqueue_action', subreddit=subreddit) }}">
+                {#                <select name="do_action">#}
+                {#                    <option value="approve">Approve</option>#}
+                {#                    <option value="remove">Remove</option>#}
+                {#                    <option value="spam" disabled>Spam</option>#}
+                {#                    <option value="ban" disabled>Ban</option>#}
+                {#                    <option value="shadowban" disabled>Shadow ban</option>#}
+                {#                </select>#}
+                <input type="submit" name="cmd_save" class="form-control btn btn-success" value="Save Changes"/>
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Comment Id</th>
+                        <th>User</th>
+                        <th>Text</th>
+                        <th>Mod Report</th>
+                        <th>User Report</th>
+                    </tr>
+                    <tr>
+                        <th colspan="6">Entries: {{ entries|count }}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in entries %}
+                        <tr>
+                            <td width="180">
+                                <div class="switch-toggle switch-3 well">
+                                    <label for="rb_{{ item.id }}_none" onclick="">
+                                        <span class="glyphicon glyphicon-info-sign" title="No Action"></span>
+                                    </label>
+                                    <input type="radio" id="rb_{{ item.id }}_none" name="rb_{{ item.id }}" checked
+                                           autocomplete="off" value="none">
+
+                                    <label for="rb_{{ item.id }}_approve" onclick="">
+                                        <span class="glyphicon glyphicon-ok-sign" title="Approve"></span>
+                                    </label>
+                                    <input type="radio" id="rb_{{ item.id }}_approve" name="rb_{{ item.id }}"
+                                           autocomplete="off" value="approve">
+
+                                    <label for="rb_{{ item.id }}_remove" onclick="">
+                                        <span class="glyphicon glyphicon-remove-sign" title="Remove"></span>
+                                    </label>
+                                    <input type="radio" id="rb_{{ item.id }}_remove" name="rb_{{ item.id }}"
+                                           id="remove" autocomplete="off" value="remove">
+
+                                      <a class="btn btn-primary"></a>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://www.reddit.com/r/{{ subreddit }}/comments/{{ item.link_id[3:] }}/_/{{ item.id }}?context=5">{{ item.id }}</a>
+                            </td>
+                            <td>{{ item.author.name }}</td>
+                            <td>{{ item.body_html | safe }}</td>
+                            <td>{% for r in item.mod_reports %}{{ r[0] }}{% endfor %}</td>
+                            <td>{% for r in item.user_reports %}{{ r[0] }}{% endfor %}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </div>
+        {#        {{ render_pagination(pagination, 'medical_history_view', sort=sort_order, dir=sort_dir) }}#}
+    </div>
+{% endblock %}
