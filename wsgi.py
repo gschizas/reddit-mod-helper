@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from modhelper.main import app as application
+from main import app as application
 
 # import os
 # import sys
