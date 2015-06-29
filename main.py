@@ -57,7 +57,7 @@ def reddit_agent():
     with open(os.path.join(os.getenv('OPENSHIFT_REPO_DIR'), 'bot.ini')) as f:
         cfg.read_file(f)
 
-    # print(request.headers)
+    logging.debug(request.headers)
     http_host = request.headers['X-Original-Host'] if 'X-Original-Host' in request.headers else request.host
     protocol = 'https' if request.headers.get('X-Original-Https') == 'on' else 'http'
     redirect_url = urllib.parse.urljoin(protocol + '://' + http_host + '/', url_for('authorize_callback'))
