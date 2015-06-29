@@ -61,7 +61,7 @@ def reddit_agent():
     http_host = request.headers['X-Original-Host'] if 'X-Original-Host' in request.headers else request.host
     protocol = 'https' if request.headers.get('X-Original-Https') == 'on' else 'http'
     redirect_url = urllib.parse.urljoin(protocol + '://' + http_host + '/', url_for('authorize_callback'))
-    print(redirect_url)
+    logging.info(redirect_url)
     r.set_oauth_app_info(cfg['oauth']['client'], cfg['oauth']['secret'], redirect_url)
     if 'access_info' in session:
         access_information = yaml.load(session['access_info'])
