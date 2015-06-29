@@ -59,7 +59,12 @@ def reddit_agent():
 
     logging.debug(request.headers)
     http_host = request.headers['X-Original-Host'] if 'X-Original-Host' in request.headers else request.host
-    protocol = 'https' if request.headers.get('X-Original-Https') == 'on' else 'http'
+    if request.headers.get('X-Forwarded-Proto') == 'https':
+        protocol = 'https'
+    elif request.headers.get('X-Original-Https') == 'on'
+        protocol = 'https' 
+    else:
+        protocol = 'http'
     redirect_url = urllib.parse.urljoin(protocol + '://' + http_host + '/', url_for('authorize_callback'))
     logging.info(redirect_url)
     r.set_oauth_app_info(cfg['oauth']['client'], cfg['oauth']['secret'], redirect_url)
