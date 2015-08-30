@@ -49,13 +49,19 @@ def dropdown(table_name):
 
 
 def reddit_agent():
-    r = praw.Reddit(user_agent='Reddit Mod Helper by /u/gschizas version 0.3')
+    r = praw.Reddit(user_agent='Reddit Mod Helper by /u/gschizas version 0.4')
     r.config.decode_html_entities = True
     r.config.log_requests = 2
-    cfg = configparser.ConfigParser()
     logging.info(os.getcwd())
-    with open(os.path.join(os.getenv('OPENSHIFT_REPO_DIR'), 'bot.ini')) as f:
-        cfg.read_file(f)
+    if 'OAUTH_CLIENT' in os.environ:
+        oauth_client = os.environ['OAUTH_CLIENT']
+        oauth_secret = os.environ['OAUTH_SECRET']
+    else:
+        cfg = configparser.ConfigParser()
+        with open(os.path.join(os.getenv('OPENSHIFT_REPO_DIR'), 'bot.ini')) as f:
+            cfg.read_file(f)
+        oauth_client = cfg['oauth']['client']
+        oauth_secret = cfg['oauth']['secret']
 
     logging.debug(request.headers)
     http_host = request.headers['X-Original-Host'] if 'X-Original-Host' in request.headers else request.host
@@ -67,7 +73,7 @@ def reddit_agent():
         protocol = 'http'
     redirect_url = urllib.parse.urljoin(protocol + '://' + http_host + '/', url_for('authorize_callback'))
     logging.info(redirect_url)
-    r.set_oauth_app_info(cfg['oauth']['client'], cfg['oauth']['secret'], redirect_url)
+    r.set_oauth_app_info(oauth_client, oauth_secret, redirect_url)
     if 'access_info' in session:
         access_information = yaml.load(session['access_info'])
         if 'last_used' in session:
