@@ -9,4 +9,4 @@
 #           jobs.deny which is checked before jobs.allow (this file).
 #
 chronograph
-remove_flair.py
+remove_flair.sh
