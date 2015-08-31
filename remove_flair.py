@@ -6,6 +6,7 @@ import logging
 import logging.handlers
 import re
 import json
+import os
 
 import praw
 
@@ -33,7 +34,8 @@ def setup_logging():
 
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-    fh = logging.handlers.TimedRotatingFileHandler('remove_flair.log', when='midnight')
+    log_file = os.path.join(os.environ['OPENSHIFT_PYTHON_LOG_DIR'], 'remove_flair.log')
+    fh = logging.handlers.TimedRotatingFileHandler(log_file, when='midnight')
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
     logger.addHandler(fh)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 import praw
 import json
 import re
@@ -11,6 +12,7 @@ import sys
 from hashlib import sha256
 
 digits58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+
 
 def decode_base58(bc, length):
     n = 0
@@ -50,7 +52,9 @@ def run_praw_tasks():
         flair_list = list(sr.get_flair_list(limit=None))
         flair_templates = sr.get_flair_choices()
         default_flair_text = {f['flair_css_class'][6:]: f['flair_text'] for f in flair_templates['choices']}
-        extended_flair_list = [dict(f.items() | {'is_custom': default_flair_text.get(f['flair_css_class'], '***') != f['flair_text']}.items()) for f in flair_list]
+        extended_flair_list = [dict(
+            f.items() | {'is_custom': default_flair_text.get(f['flair_css_class'], '***') != f['flair_text']}.items())
+                               for f in flair_list]
 
         with open('flair_list-{}.json'.format(subreddit), mode='w', encoding='utf-8') as f:
             json.dump(extended_flair_list, f, ensure_ascii=False, sort_keys=True)
@@ -66,13 +70,12 @@ def run_praw_tasks():
                 if check_hyperlink(flair_text):
                     offending_users.append([subreddit, flair_item['user']])
 
-
     if len(offending_users) > 0:
         logging.warning(offending_users)
         existing_users = json.loads(cfg.get('tasks', 'bitcoin_flair'))
         full_users = offending_users + existing_users
 
-        cfg.set('tasks', 'bitcoin_flair', json.dumps(list({ (x[0],x[1]) for x in full_users})))
+        cfg.set('tasks', 'bitcoin_flair', json.dumps(list({(x[0], x[1]) for x in full_users})))
 
         cfg.write(sys.stdout)
 
@@ -123,6 +126,7 @@ def run_praw_tasks():
 
     r.clear_authentication()
 
+
 def setup_logging():
     global logger
     logger = logging.getLogger()
@@ -130,7 +134,8 @@ def setup_logging():
 
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-    fh = logging.handlers.TimedRotatingFileHandler('scan_flair.log', when='W0')
+    log_file = os.path.join(os.environ['OPENSHIFT_PYTHON_LOG_DIR'], 'scan_flair.log')
+    fh = logging.handlers.TimedRotatingFileHandler(log_file, when='W0')
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
