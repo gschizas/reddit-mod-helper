@@ -58,7 +58,7 @@ def reddit_agent():
         oauth_secret = os.environ['OAUTH_SECRET']
     else:
         cfg = configparser.ConfigParser()
-        with open(os.path.join(os.getenv('OPENSHIFT_REPO_DIR'), 'bot.ini')) as f:
+        with open(os.path.join(os.getenv('OPENSHIFT_DATA_DIR'), 'bot.ini')) as f:
             cfg.read_file(f)
         oauth_client = cfg['oauth']['client']
         oauth_secret = cfg['oauth']['secret']
