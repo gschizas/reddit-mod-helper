@@ -1,0 +1,26 @@
+{% extends "_main.html" %}
+{% from "_helpers.html" import awesome_button, awesome_glyph, render_field %}
+{% block body %}
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h2 class="panel-title">{% block title %}{% endblock %}</h2>
+            Enter the client id and secret from <a href="https://www.reddit.com/apps/prefs">the authorized apps page</a>.
+        </div>
+        <div class="panel-body">
+            <form method="post" class="form-horizontal">
+                {{ render_field(form.client_id) }}
+                {{ render_field(form.secret) }}
+                {% block submit %}
+                    <div class="form-group">
+                        <div class="col-sm-9">
+                            <input type="submit" class="form-control btn btn-success" value="Submit"/>
+                        </div>
+                    </div>
+                {% endblock %}
+            </form>
+        </div>
+    </div>
+
+
+{% endblock %}

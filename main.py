@@ -15,7 +15,10 @@ import praw
 import requests
 import tinycss
 import yaml
-from flask import Flask, render_template, make_response, request, redirect, url_for, session, flash
+from flask import Flask, abort, render_template, make_response, request, redirect, url_for, session, flash, \
+    after_this_request
+
+from wtforms import Form, StringField
 
 from SqliteSession import SqliteSessionInterface
 
@@ -33,7 +36,7 @@ def inject_sysinfo():
 
 @app.context_processor
 def inject_user():
-    return dict(user=session['me']) if 'me' in session else None
+    return dict(user=session['me'] if 'me' in session else None)
 
 
 @app.template_filter('maxlength')
@@ -48,6 +51,24 @@ def dropdown(table_name):
     pass
 
 
+class ConfigureForm(Form):
+    client_id = StringField(u'Client ID')
+    secret = StringField(u'Secret')
+
+
+@app.route('/configure', methods=('GET',))
+def configure():
+    form = ConfigureForm()
+    return render_template('configure.html', form=form)
+
+
+@app.route('/configure', methods=('POST',))
+def configure_do():
+    flash('ini file created')
+    return redirect(url_for(''))
+    pass
+
+
 def reddit_agent():
     r = praw.Reddit(user_agent='Reddit Mod Helper by /u/gschizas version 0.4')
     r.config.decode_html_entities = True
@@ -58,17 +79,27 @@ def reddit_agent():
         oauth_secret = os.environ['OAUTH_SECRET']
     else:
         cfg = configparser.ConfigParser()
-        with open(os.path.join(os.getenv('OPENSHIFT_DATA_DIR'), 'bot.ini')) as f:
-            cfg.read_file(f)
-        oauth_client = cfg['oauth']['client']
-        oauth_secret = cfg['oauth']['secret']
+        # if file.exists()
+        ini_filename = get_ini_filename()
+        if os.path.isfile(ini_filename):
+            with open(ini_filename) as f:
+                cfg.read_file(f)
+            oauth_client = cfg['oauth']['client']
+            oauth_secret = cfg['oauth']['secret']
+        else:
+            @after_this_request
+            def add_header(response):
+                response = redirect(url_for('configure'))
+                return response
+
+            abort(404)  # return r
 
     logging.debug(request.headers)
     http_host = request.headers['X-Original-Host'] if 'X-Original-Host' in request.headers else request.host
     if request.headers.get('X-Forwarded-Proto') == 'https':
         protocol = 'https'
     elif request.headers.get('X-Original-Https') == 'on':
-        protocol = 'https' 
+        protocol = 'https'
     else:
         protocol = 'http'
     redirect_url = urllib.parse.urljoin(protocol + '://' + http_host + '/', url_for('authorize_callback'))
@@ -89,6 +120,10 @@ def reddit_agent():
             r.set_access_credentials(**access_information)
         session['me'] = get_me_serializable(r)
     return r
+
+
+def get_ini_filename():
+    return os.path.join(os.getenv('OPENSHIFT_DATA_DIR'), 'bot.ini')
 
 
 def get_empty_submissions(subreddit):
@@ -235,9 +270,9 @@ def read_automoderator_config(sr: praw.objects.Subreddit):
 
 def moderated_subreddits():
     r = reddit_agent()
-    #if 'moderated_subreddits' not in session:
+    # if 'moderated_subreddits' not in session:
     #    session['moderated_subreddits'] = list(r.get_my_moderation())
-    #return session['moderated_subreddits']
+    # return session['moderated_subreddits']
     return list(r.get_my_moderation())
 
 
