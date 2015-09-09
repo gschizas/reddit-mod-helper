@@ -65,8 +65,7 @@ def configure():
 @app.route('/configure', methods=('POST',))
 def configure_do():
     flash('ini file created')
-    return redirect(url_for(''))
-    pass
+    return redirect(url_for('home'))
 
 
 def reddit_agent():
@@ -387,7 +386,7 @@ def change_flags(subreddit):
 @app.route('/home')
 def home():
     subreddits = moderated_subreddits()
-    return render_template('home.html', subreddits=subreddits)
+    return render_template('index.html', subreddits=subreddits)
 
 
 def get_me_serializable(r):

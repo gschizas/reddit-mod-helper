@@ -1,10 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends "_main.html" %}
+{% from "_helpers.html" import awesome_button, awesome_glyph %}
+{% block body %}
+    {% for subreddit in subreddits %}
+        {% set name = subreddit.display_name %}
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-2 col-xs-offset-0 text-center">
+                    <span class="btn btn-success btn-block btn-landing">
+                    {% if subreddit.header_img %}
+                        <img src="{{ subreddit.header_img }}" style="max-height: 33px; max-width: 145px;">
+                    {% else %}
+                        {{ awesome_glyph("gi", "arrow-right") }}
+                    {% endif %}
+                        <br/>{{- name -}}
+                    </span>
+                </div>
+                {{ awesome_button("link flairs", url_for("flair", subreddit=name), "fa", "link") }}
+                {{ awesome_button("modqueue", url_for("modqueue", subreddit=name), "gi", "comment") }}
+                {{ awesome_button("user flairs", url_for("list_flags", subreddit=name), "fa", "flag") }}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
