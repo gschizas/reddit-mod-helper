@@ -18,7 +18,8 @@ import yaml
 from flask import Flask, abort, render_template, make_response, request, redirect, url_for, session, flash, \
     after_this_request
 
-from wtforms import Form, StringField
+from flask_wtf import Form
+from wtforms import StringField
 
 from SqliteSession import SqliteSessionInterface
 
@@ -56,19 +57,28 @@ class ConfigureForm(Form):
     secret = StringField(u'Secret')
 
 
-@app.route('/configure', methods=('GET',))
+@app.route('/configure', methods=('GET', 'POST'))
 def configure():
-    form = ConfigureForm()
-    return render_template('configure.html', form=form)
+    form = ConfigureForm(request.form)
+    if form.is_submitted():
+        cfg = configparser.ConfigParser()
+        ini_filename = get_ini_filename()
+        if os.path.isfile(ini_filename):
+            with open(ini_filename) as f:
+                cfg.read(f)
+        if 'oauth' not in cfg.sections():
+            cfg.add_section('oauth')
+        cfg.set('oauth', 'client', form.client_id.data)
+        cfg.set('oauth', 'secret', form.secret.data)
+        with open(ini_filename, 'w') as f:
+            cfg.write(f)
+        flash('ini file created')
+        return redirect(url_for('index'))
+    else:
+        return render_template('configure.html', form=form)
 
 
-@app.route('/configure', methods=('POST',))
-def configure_do():
-    flash('ini file created')
-    return redirect(url_for('home'))
-
-
-def reddit_agent():
+def reddit_agent(anonymous=False):
     r = praw.Reddit(user_agent='Reddit Mod Helper by /u/gschizas version 0.4')
     r.config.decode_html_entities = True
     r.config.log_requests = 2
@@ -87,7 +97,7 @@ def reddit_agent():
             oauth_secret = cfg['oauth']['secret']
         else:
             @after_this_request
-            def add_header(response):
+            def do_redirect(response):
                 response = redirect(url_for('configure'))
                 return response
 
@@ -104,6 +114,10 @@ def reddit_agent():
     redirect_url = urllib.parse.urljoin(protocol + '://' + http_host + '/', url_for('authorize_callback'))
     logging.info(redirect_url)
     r.set_oauth_app_info(oauth_client, oauth_secret, redirect_url)
+
+    if anonymous:
+        return r
+
     if 'access_info' in session:
         access_information = yaml.load(session['access_info'])
         if 'last_used' in session:
@@ -118,6 +132,11 @@ def reddit_agent():
         else:
             r.set_access_credentials(**access_information)
         session['me'] = get_me_serializable(r)
+    else:
+        @after_this_request
+        def do_redirect(response):
+            return make_response(redirect(make_authorize_url(r)))
+        abort(404)
     return r
 
 
@@ -383,12 +402,6 @@ def change_flags(subreddit):
     return make_response(redirect(url_for('list_flags', subreddit=subreddit)))
 
 
-@app.route('/home')
-def home():
-    subreddits = moderated_subreddits()
-    return render_template('index.html', subreddits=subreddits)
-
-
 def get_me_serializable(r):
     me = r.get_me()
     me_serializable = dict(comment_karma=me.comment_karma, created=me.created, created_utc=me.created_utc,
@@ -414,7 +427,7 @@ def debug():
 def authorize_callback():
     state = request.args.get('state')
     code = request.args.get('code')
-    r = reddit_agent()
+    r = reddit_agent(anonymous=True)
     try:
         access_information = r.get_access_information(code)
     except praw.errors.OAuthInvalidGrant as ex:
@@ -423,7 +436,7 @@ def authorize_callback():
     session['access_info'] = yaml.dump(access_information)
     session['last_used'] = datetime.datetime.now()
     session['me'] = get_me_serializable(r)
-    return make_response(redirect(url_for('home')))
+    return make_response(redirect(url_for('index')))
 
 
 def make_authorize_url(r):
@@ -434,16 +447,8 @@ def make_authorize_url(r):
 
 @app.route('/')
 def index():
-    global first_run
-    if first_run:
-        session.clear()
-        first_run = False
-    if 'access_info' in session:
-        return make_response(redirect(url_for('home')))
-    else:
-        r = reddit_agent()
-        return make_response(redirect(make_authorize_url(r)))
-        # return render_template('index.html')
+    subreddits = moderated_subreddits()
+    return render_template('index.html', subreddits=subreddits)
 
 
 def main():
