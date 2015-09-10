@@ -52,7 +52,7 @@
                                     <input type="radio" id="rb_{{ item.id }}_remove" name="rb_{{ item.id }}"
                                            id="remove" autocomplete="off" value="remove">
 
-                                      <a class="btn btn-primary"></a>
+                                    <a class="btn btn-primary"></a>
                                 </div>
                             </td>
                             <td>
@@ -60,8 +60,8 @@
                             </td>
                             <td>{{ item.author.name }}</td>
                             <td>{{ item.body_html | safe }}</td>
-                            <td>{% for r in item.mod_reports %}{{ r[0] }}{% endfor %}</td>
-                            <td>{% for r in item.user_reports %}{{ r[0] }}{% endfor %}</td>
+                            <td>{{ item.mod_reports | join("<br/>"|safe, attribute="0") }}</td>
+                            <td>{{ item.user_reports | join("<br/>"|safe, attribute="0") }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
