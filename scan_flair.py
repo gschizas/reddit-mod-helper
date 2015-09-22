@@ -32,21 +32,17 @@ def check_hyperlink(flair_text):
 
 def run_praw_tasks():
     global logger
+    from bot import RedditAgent
     cfg = configparser.ConfigParser()
-    cfg.read('flair-bot.ini')
 
-    username = cfg.get('authentication', 'username')
-    password = cfg.get('authentication', 'password')
-
-    r = praw.Reddit(user_agent='Flair helper by /u/gschizas version 0.2')
-
-    r.login(username=username, password=password)
+    r = RedditAgent(ini_section='flairbot', user_agent='Flair helper by /u/gschizas version 0.2')
 
     search_space = json.loads(cfg.get('tasks', 'bitcoin_flair'))
 
     subreddits = {s[0] for s in search_space}
 
     offending_users = []
+    sys.exit(99)
     for subreddit in subreddits:
         sr = r.get_subreddit(subreddit)
         flair_list = list(sr.get_flair_list(limit=None))
