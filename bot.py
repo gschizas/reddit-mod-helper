@@ -4,28 +4,29 @@ import praw
 import configparser
 import datetime
 import os
+import http
 
 
 from dateutil.parser import parse as dateparser
 
 
-# class ScriptCallbackWebServer(http.server.BaseHTTPRequestHandler):
-#     def do_GET(self):
-#         url = urllib.parse.urlparse(self.path)
-#         query = urllib.parse.parse_qs(url.query)
-#         if url.path != '/authorize_callback' or 'code' not in query:
-#             self.send_response(404)
-#             return
-#         self.send_response(200)
-#         self.send_header("Content-type", "text/html")
-#         self.end_headers()
-#         self.wfile.write("<html><head><title>Simple Bot Helper</title></head>".encode('utf-8'))
-#         self.wfile.write("<body><p>This is the authorise callback page.</p>".encode('utf-8'))
-#         self.wfile.write("<p>You accessed path: {}</p>".format(self.path).encode('utf-8'))
-#         self.wfile.write("<p>You can close your browser".encode('utf-8'))
-#         self.wfile.write("</body></html>".encode('utf-8'))
-#         self.server.callback_code = query['code'][0]
-#         self.server.now_serving = False
+class ScriptCallbackWebServer(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        url = urllib.parse.urlparse(self.path)
+        query = urllib.parse.parse_qs(url.query)
+        if url.path != '/authorize_callback' or 'code' not in query:
+            self.send_response(404)
+            return
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write("<html><head><title>Simple Bot Helper</title></head>".encode('utf-8'))
+        self.wfile.write("<body><p>This is the authorise callback page.</p>".encode('utf-8'))
+        self.wfile.write("<p>You accessed path: {}</p>".format(self.path).encode('utf-8'))
+        self.wfile.write("<p>You can close your browser".encode('utf-8'))
+        self.wfile.write("</body></html>".encode('utf-8'))
+        self.server.callback_code = query['code'][0]
+        self.server.now_serving = False
 
 
 class RedditAgent(praw.Reddit):
@@ -40,7 +41,10 @@ class RedditAgent(praw.Reddit):
         super().__init__(user_agent=user_agent, *args, **kwargs)
         self.config.decode_html_entities = True
         self.cfg = configparser.ConfigParser()
-        with open('bot.ini') as f:
+        ini_filename = 'bot.ini'
+        if 'OPENSHIFT_DATA_DIR' in os.environ:
+            ini_filename = os.path.join(os.environ, ini_filename)
+        with open(ini_filename) as f:
             self.cfg.read_file(f)
         self.client = oauth_client
         self.secret = oauth_secret
@@ -51,8 +55,15 @@ class RedditAgent(praw.Reddit):
         if self.access_token == '' or self.refresh_token == '':
             url = self.get_authorize_url('reddit_scratch', scope, True)
             print("Open the following URL in your browser:", url)
-            webbrowser.open(url)
-            callback_code = self.start_web_server(65281)
+            if 'OPENSHIFT_APP_NAME' in os.environ:
+                final_url = input('Enter final URL here')
+                callback_url = urllib.parse.urlparse(final_url)
+                callback_query = urllib.parse.parse_qs(callback_url.query)
+                callback_code = callback_query['code'][0]
+            else:
+                webbrowser.open(url)
+                callback_code = self.start_web_server(65281)
+
             access_information = self.get_access_information(callback_code)
             self.access_token = access_information['access_token']
             self.refresh_token = access_information['refresh_token']
