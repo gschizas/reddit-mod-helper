@@ -43,7 +43,7 @@ class RedditAgent(praw.Reddit):
         self.cfg = configparser.ConfigParser()
         ini_filename = 'bot.ini'
         if 'OPENSHIFT_DATA_DIR' in os.environ:
-            ini_filename = os.path.join(os.environ, ini_filename)
+            ini_filename = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], ini_filename)
         with open(ini_filename) as f:
             self.cfg.read_file(f)
         self.client = oauth_client
