@@ -77,8 +77,8 @@ class RedditAgent(praw.Reddit):
 
         self.client = oauth_client
         self.secret = oauth_secret
-        self.access_token = self.cfg[self.section].get('access_token')
-        self.refresh_token = self.cfg[self.section].get('refresh_token')
+        self.access_token = self.cfg[self.section].get('access_token', '')
+        self.refresh_token = self.cfg[self.section].get('refresh_token', '')
         redirect_url = "http://127.0.0.1:65010/authorize_callback"
         #'https://' + os.environ['OPENSHIFT_APP_DNS'] + '/authorize_callback'
         self.set_oauth_app_info(self.client, self.secret, redirect_url)
