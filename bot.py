@@ -96,10 +96,11 @@ class RedditAgent(praw.Reddit):
             self.access_token = access_information['access_token']
             self.refresh_token = access_information['refresh_token']
             self.save_state()
-        last_refresh = dateparser(self.cfg[ini_section].get('last_refresh'))
-        if last_refresh is None:
+        last_refresh_text = self.cfg[ini_section].get('last_refresh')
+        if last_refresh_text is None:
             self.refresh_token = None
         else:
+            last_refresh = dateparser(last_refresh_text)
             minutes = (datetime.datetime.now() - last_refresh).total_seconds() / 60
             if minutes < 60:
                 self.refresh_token = None
