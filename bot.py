@@ -48,12 +48,12 @@ class RedditAgent(praw.Reddit):
         self.config.decode_html_entities = True
         self.cfg = configparser.ConfigParser()
         self.section = ini_section
-        ini_filename = 'bot.ini'
+        self.ini_filename = 'bot.ini'
         ini_dirty = False
         if 'OPENSHIFT_DATA_DIR' in os.environ:
-            ini_filename = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], ini_filename)
-        if os.path.isfile(ini_filename):
-            self.cfg.read(ini_filename)
+            self.ini_filename = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], self.ini_filename)
+        if os.path.isfile(self.ini_filename):
+            self.cfg.read(self.ini_filename)
 
             if self.section in self.cfg.sections():
                 oauth_client = self.cfg[self.section]['client']
@@ -66,10 +66,11 @@ class RedditAgent(praw.Reddit):
         if ini_dirty:
             oauth_client = input("Enter Client ID: ")
             oauth_secret = input("Enter Secret ID: ")
-            if os.path.isfile(ini_filename):
-                self.cfg.read(ini_filename)
-            with open(ini_filename, 'w') as f:
+            if os.path.isfile(self.ini_filename):
+                self.cfg.read(self.ini_filename)
+            with open(self.ini_filename, 'w') as f:
                 self.cfg.add_section(self.section)
+                self.save_state()
                 self.cfg[self.section]['client'] = oauth_client
                 self.cfg[self.section]['secret'] = oauth_secret
                 self.cfg.write(f)
@@ -128,8 +129,11 @@ class RedditAgent(praw.Reddit):
         return server.callback_code
 
     def save_state(self):
+        self.cfg.read(self.ini_filename)
+        if self.section not in self.cfg.sections():
+            self.cfg.add_section(self.section)
         self.cfg[self.section]['access_token'] = self.access_token
         self.cfg[self.section]['refresh_token'] = self.refresh_token
         self.cfg[self.section]['last_refresh'] = datetime.datetime.now().isoformat()
-        with open('bot.ini', 'w') as f:
+        with open(self.ini_filename, 'w') as f:
             self.cfg.write(f)
