@@ -47,6 +47,7 @@ class RedditAgent(praw.Reddit):
         super().__init__(user_agent=user_agent, *args, **kwargs)
         self.config.decode_html_entities = True
         self.cfg = configparser.ConfigParser()
+        self.section = ini_section
         ini_filename = 'bot.ini'
         ini_dirty = False
         if 'OPENSHIFT_DATA_DIR' in os.environ:
@@ -54,9 +55,9 @@ class RedditAgent(praw.Reddit):
         if os.path.isfile(ini_filename):
             self.cfg.read(ini_filename)
 
-            if ini_section in self.cfg.sections():
-                oauth_client = self.cfg[ini_section]['client']
-                oauth_secret = self.cfg[ini_section]['secret']
+            if self.section in self.cfg.sections():
+                oauth_client = self.cfg[self.section]['client']
+                oauth_secret = self.cfg[self.section]['secret']
             else:
                 ini_dirty = True
         else:
@@ -68,15 +69,15 @@ class RedditAgent(praw.Reddit):
             if os.path.isfile(ini_filename):
                 self.cfg.read(ini_filename)
             with open(ini_filename, 'w') as f:
-                self.cfg.add_section(ini_section)
-                self.cfg[ini_section]['client'] = oauth_client
-                self.cfg[ini_section]['secret'] = oauth_secret
+                self.cfg.add_section(self.section)
+                self.cfg[self.section]['client'] = oauth_client
+                self.cfg[self.section]['secret'] = oauth_secret
                 self.cfg.write(f)
 
         self.client = oauth_client
         self.secret = oauth_secret
-        self.access_token = self.cfg[ini_section].get('access_token')
-        self.refresh_token = self.cfg[ini_section].get('refresh_token')
+        self.access_token = self.cfg[self.section].get('access_token')
+        self.refresh_token = self.cfg[self.section].get('refresh_token')
         redirect_url = "http://127.0.0.1:65010/authorize_callback"
         #'https://' + os.environ['OPENSHIFT_APP_DNS'] + '/authorize_callback'
         self.set_oauth_app_info(self.client, self.secret, redirect_url)
@@ -96,7 +97,7 @@ class RedditAgent(praw.Reddit):
             self.access_token = access_information['access_token']
             self.refresh_token = access_information['refresh_token']
             self.save_state()
-        last_refresh_text = self.cfg[ini_section].get('last_refresh')
+        last_refresh_text = self.cfg[self.section].get('last_refresh')
         if last_refresh_text is None:
             self.refresh_token = None
         else:
