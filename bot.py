@@ -6,7 +6,6 @@ import datetime
 import os
 import http.server
 
-
 from dateutil.parser import parse as dateparser
 
 
@@ -30,22 +29,50 @@ class ScriptCallbackWebServer(http.server.BaseHTTPRequestHandler):
 
 
 class RedditAgent(praw.Reddit):
-    def __init__(self, user_agent=None, *args, **kwargs):
+    def __init__(self, user_agent=None, ini_section='DEFAULT', scope=None, args, **kwargs):
         if user_agent is None:
             user_agent = 'Reddit Temporary Script by /u/gschizas version ' + datetime.date.today().isoformat()
-        scope = {'identity', 'flair', 'read', 'modflair', 'modlog', 'modposts', 'mysubreddits', 'wikiread', 'edit', 'modcontributors'}
-
-        oauth_client = os.environ['OAUTH_CLIENT']
-        oauth_secret = os.environ['OAUTH_SECRET']
+        if scope is None:
+            scope = {'identity',
+                     'flair',
+                     'read',
+                     'modflair',
+                     'modlog',
+                     'modposts',
+                     'mysubreddits',
+                     'wikiread',
+                     'edit',
+                     'modcontributors'}
 
         super().__init__(user_agent=user_agent, *args, **kwargs)
         self.config.decode_html_entities = True
         self.cfg = configparser.ConfigParser()
         ini_filename = 'bot.ini'
+        ini_dirty = False
         if 'OPENSHIFT_DATA_DIR' in os.environ:
             ini_filename = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], ini_filename)
-        with open(ini_filename) as f:
-            self.cfg.read_file(f)
+        if os.path.isfile(ini_filename):
+            self.cfg.read(ini_filename)
+
+            if ini_section in self.cfg.sections():
+                oauth_client = self.cfg[ini_section]['client']
+                oauth_secret = self.cfg[ini_section]['secret']
+            else:
+                ini_dirty = True
+        else:
+            ini_dirty = True
+
+        if ini_dirty:
+            oauth_client = input("Enter Client ID: ")
+            oauth_secret = input("Enter Secret ID: ")
+            if os.path.isfile(ini_filename):
+                self.cfg.read(ini_filename)
+            with open(ini_filename, 'w') as f:
+                self.cfg.add_section(ini_section)
+                self.cfg[ini_section]['client'] = oauth_client
+                self.cfg[ini_section]['secret'] = oauth_secret
+                self.cfg.write(f)
+
         self.client = oauth_client
         self.secret = oauth_secret
         self.access_token = open(os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'access_token')).read()
