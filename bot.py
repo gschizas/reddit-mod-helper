@@ -29,7 +29,7 @@ class ScriptCallbackWebServer(http.server.BaseHTTPRequestHandler):
 
 
 class RedditAgent(praw.Reddit):
-    def __init__(self, user_agent=None, ini_section='DEFAULT', scope=None, args, **kwargs):
+    def __init__(self, user_agent=None, ini_section='DEFAULT', scope=None, *args, **kwargs):
         if user_agent is None:
             user_agent = 'Reddit Temporary Script by /u/gschizas version ' + datetime.date.today().isoformat()
         if scope is None:
