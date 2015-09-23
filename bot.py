@@ -75,9 +75,10 @@ class RedditAgent(praw.Reddit):
 
         self.client = oauth_client
         self.secret = oauth_secret
-        self.access_token = open(os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'access_token')).read()
-        self.refresh_token = open(os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'refresh_token')).read()
-        redirect_url = 'https://' + os.environ['OPENSHIFT_APP_DNS'] + '/authorize_callback'
+        self.access_token = self.cfg[ini_section].get('access_token')
+        self.refresh_token = self.cfg[ini_section].get('refresh_token')
+        redirect_url = "http://127.0.0.1:65010/authorize_callback"
+        #'https://' + os.environ['OPENSHIFT_APP_DNS'] + '/authorize_callback'
         self.set_oauth_app_info(self.client, self.secret, redirect_url)
         if self.access_token == '' or self.refresh_token == '':
             url = self.get_authorize_url('reddit_scratch', scope, True)
