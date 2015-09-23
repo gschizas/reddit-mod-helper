@@ -96,15 +96,18 @@ class RedditAgent(praw.Reddit):
             self.access_token = access_information['access_token']
             self.refresh_token = access_information['refresh_token']
             self.save_state()
-        last_refresh = dateparser(self.cfg[self.section]['last_refresh'])
-        minutes = (datetime.datetime.now() - last_refresh).total_seconds() / 60
-        if minutes < 60:
+        last_refresh = dateparser(self.cfg[ini_section].get('last_refresh'))
+        if last_refresh is None:
             self.refresh_token = None
         else:
-            access_information = self.refresh_access_information(self.refresh_token)
-            self.access_token = access_information['access_token']
-            self.refresh_token = access_information['refresh_token']
-            self.save_state()
+            minutes = (datetime.datetime.now() - last_refresh).total_seconds() / 60
+            if minutes < 60:
+                self.refresh_token = None
+            else:
+                access_information = self.refresh_access_information(self.refresh_token)
+                self.access_token = access_information['access_token']
+                self.refresh_token = access_information['refresh_token']
+                self.save_state()
         self.set_access_credentials(scope, self.access_token, self.refresh_token, True)
 
     def start_web_server(self, port):
