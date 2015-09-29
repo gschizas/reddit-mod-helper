@@ -250,6 +250,13 @@ def modqueue_action(subreddit):
     return make_response(redirect(url_for('index')))
 
 
+@app.route('/editorialization/<subreddit>')
+def editorialization(subreddit):
+    r = reddit_agent()
+    sr = r.get_subreddit(subreddit)
+    submissions = [s for s in sr.get_new(limit=200) if not s.is_self]
+
+
 def read_automoderator_config(sr: praw.objects.Subreddit):
     last_end = -100
     line = 1

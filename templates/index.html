@@ -17,7 +17,8 @@
                 </div>
                 {{ awesome_button("link flairs", url_for("flair", subreddit=name), "fa", "link") }}
                 {{ awesome_button("modqueue", url_for("modqueue", subreddit=name), "gi", "comment") }}
-                {{ awesome_button("user flairs", url_for("list_flags", subreddit=name), "fa", "flag") }}
+                {#                {{ awesome_button("user flairs", url_for("list_flags", subreddit=name), "fa", "flag") }}#}
+                {{ awesome_button("editorialization", url_for("editorialization", subreddit=name), "fa", "user-md") }}
             </div>
         </div>
     {% endfor %}
