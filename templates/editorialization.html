@@ -6,7 +6,7 @@
             <h2 class="panel-title">Editorialization Chcker</h2>
         </div>
         <div class="table-responsive">
-            <form method="post" action="{{ url_for('change_flair', subreddit=subreddit) }}">
+            <form method="post" action="{{ url_for('editorialization', subreddit=subreddit) }}">
                 <table class="table table-striped">
                     <thead>
                     <tr>
@@ -23,22 +23,8 @@
                     <tbody>
                     {% for item in submissions %}
                         <tr>
-                            <td><a href="{{ item.short_link }}">{{ item.id }}</a></td>
-                            {% if item.is_self %}
-                                <td>{{ item.title }}
-                                    <hr>
-                                    {{ item.selftext_html | safe }}</td>
-                            {% else %}
-                                <td><a href="{{ item.url }}">{{ item.title }}</a></td>
-                            {% endif %}
-                            <td>{{ item.flair_text }}</td>
-                            <td>{{ item.flair_css_class }}</td>
-                            <td><select name="flair_{{ item.id }}">
-                                <option value="">--None--</option>
-                                {% for flair in flairs %}
-                                    <option value="{{ flair['flair_template_id'] }}">{{ flair['flair_text'] }}</option>
-                                {% endfor %}
-                            </select></td>
+                            <td><a href="{{ item.short_link }}">{{ item.title }}</a></td>
+                            <td><a href="{{ item.url }}">Placeholder for real item title</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>
