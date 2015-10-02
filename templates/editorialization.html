@@ -18,7 +18,7 @@
                     {% for item in submissions %}
                         <tr>
                             <td><a href="{{ item.short_link }}">{{ item.title }}</a></td>
-                            <td><a href="{{ item.url }}">Placeholder for real item title</a></td>
+                            <td><a href="{{ item.url }}">{{ item.real_title }}Placeholder for real item title</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>

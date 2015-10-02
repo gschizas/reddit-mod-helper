@@ -255,7 +255,9 @@ def editorialization(subreddit):
     r = reddit_agent()
     sr = r.get_subreddit(subreddit)
     submissions = [s for s in sr.get_new(limit=200) if not s.is_self]
-    return render_template('modqueue.html', subreddit=subreddit, submissions=submissions)
+    for submission in submissions:
+        submission.real_title = "Placeholder"
+    return render_template('editorialization.html', subreddit=subreddit, submissions=submissions)
 
 
 def read_automoderator_config(sr: praw.objects.Subreddit):
