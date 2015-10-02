@@ -15,6 +15,7 @@ import praw
 import requests
 import tinycss
 import yaml
+from bs4 import BeautifulSoup
 from flask import Flask, abort, render_template, make_response, request, redirect, url_for, session, flash, \
     after_this_request
 
@@ -254,9 +255,18 @@ def modqueue_action(subreddit):
 def editorialization(subreddit):
     r = reddit_agent()
     sr = r.get_subreddit(subreddit)
-    submissions = [s for s in sr.get_new(limit=200) if not s.is_self]
+    submissions = [s for s in sr.get_unmoderated(limit=20) if not s.is_self]
     for submission in submissions:
-        submission.real_title = "Placeholder"
+        real_page = requests.get(submission.url)
+        if real_page.ok:
+            page_soup = BeautifulSoup(real_page.text, "lxml")
+            title_tag = page_soup.find("title")
+            if title_tag:
+                submission.real_title = title_tag.text
+            else:
+                submission.real_title = "Could not find title"
+        else:
+            submission.real_title = "ERROR:" + str(real_page.status_code)
     return render_template('editorialization.html', subreddit=subreddit, submissions=submissions)
 
 

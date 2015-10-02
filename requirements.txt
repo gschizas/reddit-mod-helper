@@ -7,3 +7,5 @@ Requests >= 2.7.0
 tinycss >= 0.3
 WTForms >= 2.0.2
 PyYAML >= 3.11
+beautifulsoup4 >= 4.4.0
+lxml >= 3.4.4
