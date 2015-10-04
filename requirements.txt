@@ -1,12 +1,13 @@
 beautifulsoup4 >= 4.4.0
 Flask >= 0.10.1
-flask_wtf >= 0.12
+Flask-WTF >= 0.12
+Flask-SQLAlchemy >= 2.0
 lxml >= 3.4.4
 Pillow >= 2.9.0
 praw >= 3.2.1
 psycopg2 >= 2.6.1
-python_dateutil >= 2.4.2
-Requests >= 2.7.0
+python-dateutil >= 2.4.2
+requests >= 2.7.0
 ruamel.yaml >= 0.10.11
 tinycss >= 0.3
 WTForms >= 2.0.2
