@@ -14,7 +14,6 @@ import PIL.Image
 import praw
 import requests
 import tinycss
-import yaml
 from bs4 import BeautifulSoup
 from flask import Flask, abort, render_template, make_response, request, redirect, url_for, session, flash, \
     after_this_request
@@ -22,11 +21,25 @@ from flask import Flask, abort, render_template, make_response, request, redirec
 from flask_wtf import Form
 from wtforms import StringField
 
-from SqliteSession import SqliteSessionInterface
+# from SqliteSession import SqliteSessionInterface
+
+import model
 
 app = Flask(__name__)
-app.secret_key = 'mNQNveTK5DmSyjTJJfQ4bYzd6vvBPUjj'
-app.session_interface = SqliteSessionInterface()
+app.secret_key = 'SwK1xDj4gWIeDrTPqfMcXA8LJ1/BDlRDjLkaNAYcm5/ZO1gtdP31bDFrsVkN5EHE'
+app.config['SQLALCHEMY_ECHO'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('OPENSHIFT_POSTGRESQL_DB_URL')
+app.config['SECRET_KEY'] = app.secret_key
+app.config['CSRF_ENABLED'] = False
+app.session_interface = model.PostgresSessionInterface()
+
+model.db.init_app(app)
+with app.app_context():
+    model.db.create_all()
+
+# app = Flask(__name__)
+# app.secret_key = "darkbaboon99"
+
 first_run = True
 logging.basicConfig(level=logging.DEBUG)
 
@@ -120,7 +133,7 @@ def reddit_agent(anonymous=False):
         return r
 
     if 'access_info' in session:
-        access_information = yaml.load(session['access_info'])
+        access_information = session['access_info']
         if 'last_used' in session:
             last_used = session['last_used']
             minutes = (datetime.datetime.now() - last_used).total_seconds() / 60
@@ -129,7 +142,7 @@ def reddit_agent(anonymous=False):
 
         if minutes > 60:
             new_access_info = r.refresh_access_information(access_information['refresh_token'])
-            session['access_info'] = yaml.dump(new_access_info)
+            session['access_info'] = new_access_info
         else:
             r.set_access_credentials(**access_information)
         session['me'] = get_me_serializable(r)
@@ -137,6 +150,7 @@ def reddit_agent(anonymous=False):
         @after_this_request
         def do_redirect(response):
             return make_response(redirect(make_authorize_url(r)))
+
         abort(404)
     return r
 
@@ -453,9 +467,9 @@ def authorize_callback():
     except praw.errors.OAuthInvalidGrant as ex:
         print(ex)
         return make_response(redirect(make_authorize_url(r)))
-    session['access_info'] = yaml.dump(access_information)
+    session['access_info'] = access_information
     session['last_used'] = datetime.datetime.now()
-    session['me'] = get_me_serializable(r)
+    # session['me'] = get_me_serializable(r)
     return make_response(redirect(url_for('index')))
 
 
