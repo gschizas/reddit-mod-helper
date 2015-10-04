@@ -46,7 +46,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 @app.context_processor
 def inject_sysinfo():
-    return dict(sysinfo=dict(build="0.2"))
+    return dict(sysinfo=dict(build="0.5"))
 
 
 @app.context_processor
@@ -93,7 +93,7 @@ def configure():
 
 
 def reddit_agent(anonymous=False):
-    r = praw.Reddit(user_agent='Reddit Mod Helper by /u/gschizas version 0.4')
+    r = praw.Reddit(user_agent='Reddit Mod Helper by /u/gschizas version 0.5')
     r.config.decode_html_entities = True
     r.config.log_requests = 2
     logging.info(os.getcwd())

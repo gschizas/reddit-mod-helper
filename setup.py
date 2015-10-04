@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='ModHelper',
-      version='0.1',
+      version='0.5',
       description='Mod Helper for Reddit',
       author='George Schizas',
       author_email='gschizas@gmail.com',
