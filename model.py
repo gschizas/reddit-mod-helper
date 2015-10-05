@@ -24,12 +24,12 @@ class Session(db.Model):
         #     self.value = value
 
 
-class Submissions(db.Model):
+class Submission(db.Model):
     __tablename__ = 'SUBMISSIONS'
 
     id = db.Column('THING_ID', db.String(36), primary_key=True, unique=True)
-    url = db.Column('URL', db.String(2048))
-    title = db.Column('TITLE', db.String(1024))
+    url = db.Column('URL', db.Unicode(2048))
+    title = db.Column('TITLE', db.Unicode(1024))
     content = db.Column('CONTENT', db.UnicodeText())
 
 

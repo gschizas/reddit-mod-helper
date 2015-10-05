@@ -277,21 +277,42 @@ seqm is a difflib.SequenceMatcher instance whose a & b are strings"""
         elif opcode == 'delete':
             output.append("<del>" + seqm.a[a0:a1] + "</del>")
         elif opcode == 'replace':
-            raise NotImplementedError("what to do with 'replace' opcode?")
+            output.append("<ins>" + seqm.b[b0:b1] + "</ins>")
+            output.append("<del>" + seqm.a[a0:a1] + "</del>")
         else:
             raise RuntimeError("unexpected opcode")
     return ''.join(output)
 
+def _cached_get(submission):
+    cached_page = model.Submission.query.filter_by(id=submission.id).first()
+    if cached_page is None:
+        resp = requests.get(submission.url)
+        resp_ok = resp.ok
+        resp_text = resp.text
+        if resp_ok:
+            cached_page = model.Submission()
+            cached_page.id = submission.id
+            cached_page.url = submission.url
+            cached_page.title = submission.title
+            cached_page.content = resp_text
+            model.db.session.add(cached_page)
+            model.db.session.commit()
+    else:
+        resp_ok = True
+        resp_text = cached_page.content
+    return resp_ok, resp_text
+
 @app.route('/editorialization/<subreddit>')
 def editorialization(subreddit):
     import difflib
+    from jinja2.filters import escape
     r = reddit_agent()
     sr = r.get_subreddit(subreddit)
     submissions = [s for s in sr.get_unmoderated(limit=20) if not s.is_self]
     for submission in submissions:
-        real_page = requests.get(submission.url)
-        if real_page.ok:
-            page_soup = BeautifulSoup(real_page.text, "lxml")
+        real_page_ok, real_page_text = _cached_get(submission)
+        if real_page_ok:
+            page_soup = BeautifulSoup(real_page_text, "lxml")
             title_tag = page_soup.find("title")
             if title_tag:
                 submission.real_title = title_tag.text
