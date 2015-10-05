@@ -288,6 +288,7 @@ def _cached_get(submission):
     if cached_page is None:
         resp = requests.get(submission.url)
         resp_ok = resp.ok
+        resp_status = resp.status_code
         resp_text = resp.text
         if resp_ok:
             cached_page = model.Submission()
@@ -299,8 +300,9 @@ def _cached_get(submission):
             model.db.session.commit()
     else:
         resp_ok = True
+        resp_status = 304
         resp_text = cached_page.content
-    return resp_ok, resp_text
+    return resp_ok, resp_status, resp_text
 
 @app.route('/editorialization/<subreddit>')
 def editorialization(subreddit):
@@ -310,7 +312,7 @@ def editorialization(subreddit):
     sr = r.get_subreddit(subreddit)
     submissions = [s for s in sr.get_unmoderated(limit=20) if not s.is_self]
     for submission in submissions:
-        real_page_ok, real_page_text = _cached_get(submission)
+        real_page_ok, real_page_status, real_page_text = _cached_get(submission)
         if real_page_ok:
             page_soup = BeautifulSoup(real_page_text, "lxml")
             title_tag = page_soup.find("title")
@@ -319,7 +321,7 @@ def editorialization(subreddit):
             else:
                 submission.real_title = "Could not find title"
         else:
-            submission.real_title = "ERROR:" + str(real_page.status_code)
+            submission.real_title = "ERROR:" + str(real_page_status)
         diff = difflib.SequenceMatcher(None, submission.title, submission.real_title)
         submission.difference = show_diff(diff)
     return render_template('editorialization.html', subreddit=subreddit, submissions=submissions)
