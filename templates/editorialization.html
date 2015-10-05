@@ -12,6 +12,7 @@
                     <tr>
                         <th>Given title</th>
                         <th>Real title</th>
+                        <th>Difference</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -19,6 +20,7 @@
                         <tr>
                             <td><a href="{{ item.short_link }}">{{ item.title }}</a></td>
                             <td><a href="{{ item.url }}">{{ item.real_title }}</a></td>
+                            <td>{{ item.difference | safe}}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

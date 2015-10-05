@@ -265,8 +265,26 @@ def modqueue_action(subreddit):
     return make_response(redirect(url_for('index')))
 
 
+def show_diff(seqm):
+    """Unify operations between two compared strings
+seqm is a difflib.SequenceMatcher instance whose a & b are strings"""
+    output= []
+    for opcode, a0, a1, b0, b1 in seqm.get_opcodes():
+        if opcode == 'equal':
+            output.append(seqm.a[a0:a1])
+        elif opcode == 'insert':
+            output.append("<ins>" + seqm.b[b0:b1] + "</ins>")
+        elif opcode == 'delete':
+            output.append("<del>" + seqm.a[a0:a1] + "</del>")
+        elif opcode == 'replace':
+            raise NotImplementedError("what to do with 'replace' opcode?")
+        else:
+            raise RuntimeError("unexpected opcode")
+    return ''.join(output)
+
 @app.route('/editorialization/<subreddit>')
 def editorialization(subreddit):
+    import difflib
     r = reddit_agent()
     sr = r.get_subreddit(subreddit)
     submissions = [s for s in sr.get_unmoderated(limit=20) if not s.is_self]
@@ -281,6 +299,8 @@ def editorialization(subreddit):
                 submission.real_title = "Could not find title"
         else:
             submission.real_title = "ERROR:" + str(real_page.status_code)
+        diff = difflib.SequenceMatcher(None, submission.title, submission.real_title)
+        submission.difference = show_diff(diff)
     return render_template('editorialization.html', subreddit=subreddit, submissions=submissions)
 
 
