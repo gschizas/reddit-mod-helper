@@ -30,21 +30,6 @@ class ScriptCallbackWebServer(http.server.BaseHTTPRequestHandler):
 
 class RedditAgent(praw.Reddit):
     def __init__(self, user_agent=None, ini_section='DEFAULT', scope=None, *args, **kwargs):
-        if user_agent is None:
-            user_agent = 'Reddit Temporary Script by /u/gschizas version ' + datetime.date.today().isoformat()
-        if scope is None:
-            scope = {'identity',
-                     'flair',
-                     'read',
-                     'modflair',
-                     'modlog',
-                     'modposts',
-                     'mysubreddits',
-                     'wikiread',
-                     'edit',
-                     'modcontributors'}
-
-        super().__init__(user_agent=user_agent, *args, **kwargs)
         self.config.decode_html_entities = True
         self.cfg = configparser.ConfigParser()
         self.section = ini_section
@@ -52,8 +37,15 @@ class RedditAgent(praw.Reddit):
         ini_dirty = False
         if 'OPENSHIFT_DATA_DIR' in os.environ:
             self.ini_filename = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], self.ini_filename)
+
         if os.path.isfile(self.ini_filename):
             self.cfg.read(self.ini_filename)
+
+            if user_agent is None and 'user_agent' in self.cfg[self.section]:
+                user_agent = self.cfg[self.section]['user_agent']
+
+            if scope is None and 'scope' in self.cfg[self.section]:
+                scope = set(self.cfg[self.section]['scope'].split(','))
 
             if self.section in self.cfg.sections():
                 oauth_client = self.cfg[self.section]['client']
@@ -77,20 +69,40 @@ class RedditAgent(praw.Reddit):
 
         self.client = oauth_client
         self.secret = oauth_secret
+
+        if user_agent is None:
+            user_agent = 'Reddit Temporary Script by /u/gschizas version ' + datetime.date.today().isoformat()
+        if scope is None:
+            scope = {'identity',
+                     'flair',
+                     'read',
+                     'modflair',
+                     'modlog',
+                     'modposts',
+                     'mysubreddits',
+                     'wikiread',
+                     'edit',
+                     'modcontributors'}
+
+        super().__init__(user_agent=user_agent, *args, **kwargs)
+
         self.access_token = self.cfg[self.section].get('access_token', '')
         self.refresh_token = self.cfg[self.section].get('refresh_token', '')
         redirect_url = "http://127.0.0.1:65010/authorize_callback"
-        #'https://' + os.environ['OPENSHIFT_APP_DNS'] + '/authorize_callback'
         self.set_oauth_app_info(self.client, self.secret, redirect_url)
         if self.access_token == '' or self.refresh_token == '':
             url = self.get_authorize_url('reddit_scratch', scope, True)
-            print("Open the following URL in your browser:", url)
             if 'OPENSHIFT_APP_NAME' in os.environ:
+                # we are running under openshift, so, don't open browser automatcially
+                # as openshift's environment only has a text browser, and it's not
+                # going to be logged in
+                print("Open the following URL in your browser:", url)
                 final_url = input('Enter final URL here')
                 callback_url = urllib.parse.urlparse(final_url)
                 callback_query = urllib.parse.parse_qs(callback_url.query)
                 callback_code = callback_query['code'][0]
             else:
+                import webbrowser
                 webbrowser.open(url)
                 callback_code = self.start_web_server(65281)
 
