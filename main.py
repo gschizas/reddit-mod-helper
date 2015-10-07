@@ -16,7 +16,7 @@ import requests
 import tinycss
 from bs4 import BeautifulSoup
 from flask import Flask, abort, render_template, make_response, request, redirect, url_for, session, flash, \
-    after_this_request
+    after_this_request, jsonify
 
 from flask_wtf import Form
 from wtforms import StringField
@@ -268,7 +268,7 @@ def modqueue_action(subreddit):
 def show_diff(seqm):
     """Unify operations between two compared strings
 seqm is a difflib.SequenceMatcher instance whose a & b are strings"""
-    output= []
+    output = []
     for opcode, a0, a1, b0, b1 in seqm.get_opcodes():
         if opcode == 'equal':
             output.append(seqm.a[a0:a1])
@@ -282,6 +282,7 @@ seqm is a difflib.SequenceMatcher instance whose a & b are strings"""
         else:
             raise RuntimeError("unexpected opcode")
     return ''.join(output)
+
 
 def _cached_get(submission):
     cached_page = model.Submission.query.filter_by(id=submission.id).first()
@@ -303,6 +304,7 @@ def _cached_get(submission):
         resp_status = 304
         resp_text = cached_page.content
     return resp_ok, resp_status, resp_text
+
 
 @app.route('/editorialization/<subreddit>')
 def editorialization(subreddit):
@@ -498,6 +500,60 @@ def debug():
     result += ''.join(['<tr><td>{}</td><td>{}</td></tr>'.format(k, v) for k, v in request.headers.items()])
     result += '</table></body></html>'
     return result
+
+
+def _slack_reply(text):
+    return jsonify(dict(text=text))
+
+
+@app.route('/votebot', methods=('GET', 'POST'))
+def votebot():
+    user_id = request.form['user_id']
+    user_name = request.form['user_name']
+    token = request.form['token']
+
+    if user_id == 'USLACKBOT':
+        abort(204)
+    correct_token = os.environ['SLACK_VOTEBOT_TOKEN']
+    if token != correct_token:
+        abort(404)
+
+    text = request.form['text']
+    text_parts = text.split(maxsplit=2)
+    command = text_parts[1].lower()
+
+    yes_words = ['yes', 'yay', 'si', 'oui', 'ja', 'ναι', 'true', 'upvote', '+', '+1', '1']
+    no_words = ['no', 'nay', 'non', 'nein', 'όχι', 'false', 'downvote', '-', '-1']
+    abstain_words = ['abstain', 'meh', 'empty', '0']
+    if command == 'start':
+        ballot_title = text_parts[2]
+        ballot = model.Ballots.query.filter_by(title=ballot_title).first()
+        if ballot is not None:
+            return _slack_reply("Vote on ballot '{}' already exists".format(ballot_title))
+        ballot = model.Ballots()
+        ballot.title = ballot_title
+        ballot.opened_by = user_id
+        ballot.status = model.Ballots.VOTE_OPEN
+        model.db.session.add(ballot)
+        model.db.session.commit()
+        return _slack_reply(command + ":" + ballot_title)
+    elif command == 'stop':
+        ballot_title = text_parts[2]
+
+        return _slack_reply(command + ":" + ballot_title)
+    elif command == 'list':
+        return 'these are the vote subjects you have open:'
+    elif command == 'mine':
+        pass
+    elif command in yes_words:
+        return _slack_reply("{} voted yes".format(user_name))
+    elif command in no_words:
+        return _slack_reply("{} voted no".format(user_name))
+    elif command in abstain_words:
+        return _slack_reply("{} voted abstain".format(user_name))
+    else:
+        reply = "user_id: {}\nuser_name: {}\ntext: {}\ncommand: {}".format(user_id, user_name, text, command)
+        return _slack_reply(reply)
 
 
 @app.route('/authorize_callback')

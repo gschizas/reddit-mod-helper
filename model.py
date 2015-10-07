@@ -9,11 +9,11 @@ db = SQLAlchemy()
 
 
 class Session(db.Model):
-    __tablename__ = 'SESSION'
+    __tablename__ = 'Session'
 
-    id = db.Column('SESSION_ID', db.String(36), primary_key=True)
-    key = db.Column('KEY', db.String(64), primary_key=True)
-    value = db.Column('VALUE', db.UnicodeText)
+    id = db.Column('Id', db.String(36), primary_key=True)
+    key = db.Column('Key', db.String(64), primary_key=True)
+    value = db.Column('Value', db.UnicodeText)
 
     def __init__(self, sid, key):
         self.id = sid
@@ -25,12 +25,36 @@ class Session(db.Model):
 
 
 class Submission(db.Model):
-    __tablename__ = 'SUBMISSIONS'
+    __tablename__ = 'Submissions'
 
-    id = db.Column('THING_ID', db.String(36), primary_key=True, unique=True)
+    id = db.Column('Id', db.String(36), primary_key=True, unique=True)
     url = db.Column('URL', db.Unicode(2048))
-    title = db.Column('TITLE', db.Unicode(1024))
-    content = db.Column('CONTENT', db.UnicodeText())
+    title = db.Column('Title', db.Unicode(1024))
+    content = db.Column('Content', db.UnicodeText)
+
+
+class Ballots(db.Model):
+    __tablename__ = 'Ballots'
+
+    VOTE_OPEN = 10
+    VOTE_CLOSED = 20
+    VOTE_DELETED = 30
+
+    subject_id = db.Column('Id', db.Integer, primary_key=True, unique=True)
+    title = db.Column('Title', db.String(128))
+    description = db.Column('Description', db.UnicodeText)
+    status = db.Column('Status', db.SmallInteger)
+    opened_by = db.Column('OpenedBy', db.String(64))
+
+
+class Vote(db.Model):
+    __tablename = 'Votes'
+
+    vote_id = db.Column('Id', db.Integer, primary_key=True, unique=True)
+    subject_id = db.Column('SubjectId', db.Integer, db.ForeignKey('Ballots.Id'))
+    subject = db.relationship(Ballots)
+    user_id = db.Column('UserId', db.String(64))
+    value = db.Column('Value', db.SmallInteger)
 
 
 class PostgresSession(MutableMapping, SessionMixin):
