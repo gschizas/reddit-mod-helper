@@ -14,9 +14,11 @@ import PIL.Image
 import praw
 import requests
 import tinycss
+
+from flask.ext.babel import Babel, format_datetime
 from bs4 import BeautifulSoup
 from flask import Flask, abort, render_template, make_response, request, redirect, url_for, session, flash, \
-    after_this_request, jsonify
+    after_this_request, jsonify, g
 
 from flask_wtf import Form
 from wtforms import StringField
@@ -32,6 +34,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('OPENSHIFT_POSTGRESQL_DB_URL')
 app.config['SECRET_KEY'] = app.secret_key
 app.config['CSRF_ENABLED'] = False
 app.session_interface = model.PostgresSessionInterface()
+babel = Babel(app)
 
 model.db.init_app(app)
 with app.app_context():
@@ -59,6 +62,36 @@ def max_length(iterable):
     validators_max_length = [v.max for v in iterable.validators if 'wtforms.validators.Length' in str(type(v))]
     if len(validators_max_length) > 0:
         return max(validators_max_length)
+
+
+@app.template_filter('datetime')
+def format_datetime_filter(value, date_format='medium'):
+    if type(value) in [int, float]:
+        value = datetime.datetime.fromtimestamp(value)
+    if date_format == 'full':
+        date_format = "EEEE, d MMMM y 'at' HH:mm"
+    elif date_format == 'medium':
+        date_format = "EE dd/MM/y HH:mm"
+    return format_datetime(value, date_format)
+
+
+@babel.localeselector
+def get_locale():
+    # if a user is logged in, use the locale from the user settings
+    user = getattr(g, 'user', None)
+    if user is not None:
+        return user.locale
+    # otherwise try to guess the language from the user accept
+    # header the browser transmits.  We support de/fr/en in this
+    # example.  The best match wins.
+    return request.accept_languages.best_match(['de', 'fr', 'en'])
+
+
+@babel.timezoneselector
+def get_timezone():
+    user = getattr(g, 'user', None)
+    if user is not None:
+        return user.timezone
 
 
 @app.route('/_dropdown/<table_name>', methods=('GET', 'POST'))
@@ -490,6 +523,14 @@ def get_me_serializable(r):
                            inbox_count=me.inbox_count, is_gold=me.is_gold, is_mod=me.is_mod, json_dict=me.json_dict,
                            link_karma=me.link_karma, name=me.name, over_18=me.over_18)
     return me_serializable
+
+
+@app.route('/modlog/<subreddit>')
+def modlog(subreddit):
+    r = reddit_agent()
+    sr = r.get_subreddit(subreddit)
+    mod_log = sr.get_mod_log(limit=50, action="removelink")
+    return render_template('modlog.html', log_entries=mod_log)
 
 
 @app.route('/debug')
