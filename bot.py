@@ -30,7 +30,6 @@ class ScriptCallbackWebServer(http.server.BaseHTTPRequestHandler):
 
 class RedditAgent(praw.Reddit):
     def __init__(self, user_agent=None, ini_section='DEFAULT', scope=None, *args, **kwargs):
-        self.config.decode_html_entities = True
         self.cfg = configparser.ConfigParser()
         self.section = ini_section
         self.ini_filename = 'bot.ini'
@@ -86,6 +85,7 @@ class RedditAgent(praw.Reddit):
 
         super().__init__(user_agent=user_agent, *args, **kwargs)
 
+        self.config.decode_html_entities = True
         self.access_token = self.cfg[self.section].get('access_token', '')
         self.refresh_token = self.cfg[self.section].get('refresh_token', '')
         redirect_url = "http://127.0.0.1:65010/authorize_callback"
