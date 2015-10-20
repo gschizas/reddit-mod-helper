@@ -441,14 +441,15 @@ def read_automoderator_config(sr: praw.objects.Subreddit):
 
 
 def moderated_subreddits():
-    if 'moderated_subreddits' not in session:
-        r = reddit_agent()
-        result = list(r.get_my_moderation())
-        for rr in result:
-            if rr.header_img:
-                rr.header_img = rr.header_img.replace('http://', 'https://')
-        session['moderated_subreddits'] = result
-    return session['moderated_subreddits']
+    r = reddit_agent()
+    result = list(r.get_my_moderation())
+    return result
+    # if 'moderated_subreddits' not in session:
+    #     for rr in result:
+    #         if rr.header_img:
+    #             rr.header_img = rr.header_img.replace('http://', 'https://')
+    #     session['moderated_subreddits'] = result
+    # return session['moderated_subreddits']
 
 
 def clean_stylesheet(css, images):
