@@ -1,0 +1,12 @@
+{% extends "_main.html" %}
+{% from "_helpers.html" import render_field, render_pagination %}
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h2 class="panel-title">{% block title %}{% endblock %}</h2>
+        </div>
+        <div class="table-responsive">
+            {% block table %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}
