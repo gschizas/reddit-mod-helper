@@ -399,11 +399,14 @@ def read_automoderator_config(sr: praw.objects.Subreddit):
 
 
 def moderated_subreddits():
-    r = reddit_agent()
-    # if 'moderated_subreddits' not in session:
-    #    session['moderated_subreddits'] = list(r.get_my_moderation())
-    # return session['moderated_subreddits']
-    return list(r.get_my_moderation())
+    if 'moderated_subreddits' not in session:
+        r = reddit_agent()
+        result = list(r.get_my_moderation())
+        for rr in result:
+            if rr.header_img:
+                rr.header_img = rr.header_img.replace('http://', 'https://')
+        session['moderated_subreddits'] = result
+    return session['moderated_subreddits']
 
 
 def clean_stylesheet(css, images):
