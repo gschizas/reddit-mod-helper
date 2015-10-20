@@ -362,6 +362,48 @@ def editorialization(subreddit):
     return render_template('editorialization.html', subreddit=subreddit, submissions=submissions)
 
 
+def parse_link(raw_link):
+    link_parts = raw_link.split(',')
+    if link_parts[0] == 'm':  # message
+        return 'https://www.reddit.com/message/messages/' + link_parts[1]
+    elif link_parts[0] == 'l':  # link
+        if len(link_parts) == 3:  # comment
+            return 'https://www.reddit.com/comments/{0[1]}/_/{0[2]}'.format(link_parts)
+        elif len(link_parts) == 2:  # post
+            return 'https://www.reddit.com/comments/{0[1]}'.format(link_parts)
+    # default
+    return ''
+
+
+@app.route('/usernotes/<subreddit>')
+def usernotes(subreddit):
+    import json
+    import zlib
+    import datetime
+    if subreddit + ':usernotes' not in session:
+        r = reddit_agent()
+        sr = r.get_subreddit(subreddit)
+        usernotes_page = sr.get_wiki_page('usernotes')
+        usernotes_compressed = json.loads(usernotes_page.content_md)
+        session[subreddit + ':usernotes'] = usernotes_compressed
+    else:
+        usernotes_compressed = session[subreddit + ':usernotes']
+    usernotes = json.loads(zlib.decompress(base64.b64decode(usernotes_compressed['blob'])).decode())
+    warnings = usernotes_compressed['constants']['warnings']
+    moderators = usernotes_compressed['constants']['users']
+    users = {}
+    for user, notes in usernotes.items():
+        note_info = [{
+                         'link': parse_link(n['l']),
+                         'text': n['n'],
+                         'when': datetime.datetime.fromtimestamp(n['t']),
+                         'mode': warnings[n['m']] if n['m'] < len(warnings) else 'unknown %d' % n['m'],
+                         'who': moderators[n['w']] if n['w'] < len(moderators) else 'unknown %d' % n['w']
+                     } for n in notes['ns']]
+        users[user] = note_info
+    return render_template('usernotes.html', subreddit=subreddit, users=users)
+
+
 def read_automoderator_config(sr: praw.objects.Subreddit):
     last_end = -100
     line = 1
@@ -617,7 +659,7 @@ def authorize_callback():
 
 
 def make_authorize_url(r):
-    scope = ['identity', 'flair', 'read', 'modflair', 'modlog', 'modposts', 'mysubreddits']
+    scope = {'identity', 'flair', 'read', 'modflair', 'modlog', 'modposts', 'mysubreddits', 'wikiread'}
     authorize_url = r.get_authorize_url('RedditModHelper', scope, True)
     return authorize_url
 

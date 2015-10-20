@@ -1,0 +1,36 @@
+{% extends "_tabledata.html" %}
+{% from "_helpers.html" import render_field, render_pagination %}
+{% block title %}User Notes{% endblock %}
+{% block table %}
+    <table class="table table-striped table-bordered table-hover">
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Link</th>
+            <th>Type</th>
+            <th>Moderator</th>
+            <th>Details</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user, notes in users.items() %}
+            <tr>
+                <td rowspan="{{ notes|length }}">
+                    <a href="https://www.reddit.com/user/{{ user }}">{{ user }}</a>
+                </td>
+                {% set first_line = True %}
+                {% for note in notes %}
+                    {% if not first_line %}
+                        <tr>{% endif %}
+                <td><a href="{{ note.link }}">{{ note.mode }}</a></td>
+                <td>{{ note.when }}</td>
+                <td>{{ note.who }}</td>
+                <td>{{ note.text }}</td>
+                {% if not first_line %}</tr>{% endif %}
+                    {% set first_line = False %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
