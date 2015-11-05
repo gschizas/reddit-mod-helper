@@ -641,13 +641,13 @@ def votebot():
         return _slack_reply("{}:{}".format(command, ballot_id))
     elif command == 'list':
         result = '\n'.join(
-            ['{}. "{}" by {}'.format(ballot.id, ballot.title, ballot.opened_by)
+            ['{}. "{}" by {}'.format(ballot.ballot_id, ballot.title, ballot.opened_by)
              for ballot in model.Ballots.query]
         )
         return _slack_reply(result)
     elif command in ['my', 'mine']:
         result = '\n'.join(
-            ['{}. "{}" by you'.format(ballot.id, ballot.title)
+            ['{}. "{}" by you'.format(ballot.ballot_id, ballot.title)
              for ballot in model.Ballots.query.filter_by(opened_by=user_name)]
         )
         return _slack_reply(result)
