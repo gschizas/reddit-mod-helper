@@ -615,16 +615,11 @@ def votebot():
         mine: list all ballots created by me
         create <title>: create a new ballot
         delete <id>: delete a ballot
-        vote <id> """ + ','.join(yes_words) + """: positive vote for ballot <id>
-        vote <id> """ + ','.join(no_words) + """: negative vote for ballot <id>
+        """ + ','.join(yes_words) + """ <id>: positive vote for ballot <id>
+        """ + ','.join(no_words) + """ <id>: negative vote for ballot <id>
+        """ + ','.join(abstain_words) + """ <id>: neutral vote for ballot <id>
         result <id>: current vote results
         """)
-    elif command == 'list':
-        result = '\n'.join(
-            ['{}. "{}" by {}'.format(ballot.id, ballot.title, ballot.opened_by)
-             for ballot in model.Ballots.query]
-        )
-        return _slack_reply(result)
     elif command == 'create':
         ballot_title = text_parts[2]
         ballot = model.Ballots.query.filter_by(title=ballot_title).first()
@@ -632,25 +627,38 @@ def votebot():
             return _slack_reply("Vote on ballot '{}' already exists".format(ballot_title))
         ballot = model.Ballots()
         ballot.title = ballot_title
-        ballot.opened_by = user_id
+        ballot.opened_by = user_name
         ballot.status = model.Ballots.VOTE_OPEN
         model.db.session.add(ballot)
         model.db.session.commit()
         return _slack_reply(command + ":" + ballot_title)
     elif command == 'finish':
-        ballot_title = text_parts[2]
-
-        return _slack_reply(command + ":" + ballot_title)
+        ballot_id_text = text_parts[2]
+        if not re.match("\d+", ballot_id_text):
+            return _slack_reply("Invalid ballot Id:", ballot_id_text)
+        else:
+            ballot_id = int(ballot_id_text)
+        return _slack_reply("{}:{}".format(command, ballot_id))
     elif command == 'list':
-        return 'these are the vote subjects you have open:'
+        result = '\n'.join(
+            ['{}. "{}" by {}'.format(ballot.id, ballot.title, ballot.opened_by)
+             for ballot in model.Ballots.query]
+        )
+        return _slack_reply(result)
     elif command in ['my', 'mine']:
-        pass
+        result = '\n'.join(
+            ['{}. "{}" by you'.format(ballot.id, ballot.title)
+             for ballot in model.Ballots.query.filter_by(opened_by=user_name)]
+        )
+        return _slack_reply(result)
     elif command in yes_words:
-        return _slack_reply("{} voted yes".format(user_name))
+        ballot_id = text_parts[2]
+        return _slack_reply("{} voted yes for ballot {}".format(user_name, ballot_id))
     elif command in no_words:
-        return _slack_reply("{} voted no".format(user_name))
+        ballot_id = text_parts[2]
+        return _slack_reply("{} voted no for ballot {}".format(user_name, ballot_id))
     elif command in abstain_words:
-        return _slack_reply("{} voted abstain".format(user_name))
+        return _slack_reply("{} voted abstain for ballot {}".format(user_name))
     else:
         reply = "user_id: {}\nuser_name: {}\ntext: {}\ncommand: {}".format(user_id, user_name, text, command)
         return _slack_reply(reply)

@@ -40,7 +40,7 @@ class Ballots(db.Model):
     VOTE_CLOSED = 20
     VOTE_DELETED = 30
 
-    subject_id = db.Column('Id', db.Integer, primary_key=True, unique=True)
+    ballot_id = db.Column('Id', db.Integer, primary_key=True, unique=True)
     title = db.Column('Title', db.String(128))
     description = db.Column('Description', db.UnicodeText)
     status = db.Column('Status', db.SmallInteger)
