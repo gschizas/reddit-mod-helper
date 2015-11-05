@@ -661,7 +661,18 @@ def votebot():
         ballot_id, error = _do_vote(text_parts, user_name, 0)
         if error:
             return error
-        return _slack_reply("{} voted abstain for ballot {}".format(user_name))
+        return _slack_reply("{} voted abstain for ballot {}".format(user_name, ballot_id))
+    elif command == 'result' or command == '?':
+        ballot_id, error = _do_vote(text_parts, user_name, 0)
+        if error:
+            return error
+        from sqlalchemy.sql import func
+        ballot = model.db.session.query(func.sum()).Ballots.query.filter_by(ballot_id=ballot_id).first()
+        if ballot is None:
+            return _slack_reply("Unknown ballot id: {}".ballot_id)
+        votes = model.Vote.query.filter_by(ballot_id=ballot_id).all()
+        vote_result = sum([vote.value for vote in votes])
+        return _slack_reply("{} result: {}".format(ballot.title, vote_result))
     else:
         reply = "user_id: {}\nuser_name: {}\ntext: {}\ncommand: {}".format(user_id, user_name, text, command)
         return _slack_reply(reply)
