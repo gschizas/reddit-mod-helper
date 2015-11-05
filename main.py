@@ -633,12 +633,8 @@ def votebot():
         model.db.session.commit()
         return _slack_reply(command + ":" + ballot_title)
     elif command == 'finish':
-        ballot_id_text = text_parts[2]
-        if not re.match("\d+", ballot_id_text):
-            return _slack_reply("Invalid ballot Id:", ballot_id_text)
-        else:
-            ballot_id = int(ballot_id_text)
-        return _slack_reply("{}:{}".format(command, ballot_id))
+        ballot_id, error = _get_balllot_id(text_parts)
+        return error or _slack_reply("{}:{}".format(command, ballot_id))
     elif command == 'list':
         result = '\n'.join(
             ['{}. "{}" by {}'.format(ballot.ballot_id, ballot.title, ballot.opened_by)
@@ -652,41 +648,48 @@ def votebot():
         )
         return _slack_reply(result)
     elif command in yes_words:
-        ballot_id = text_parts[2]
-        vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id)
-        if vote is None:
-            vote = model.Vote()
-            vote.ballot_id = ballot_id
-            vote.user_id = user_name
-        vote.value = +1
-        model.db.session.add(vote)
-        model.db.session.commit()
+        ballot_id, error = _do_vote(text_parts, user_name, +1)
+        if error:
+            return error
         return _slack_reply("{} voted yes for ballot {}".format(user_name, ballot_id))
     elif command in no_words:
-        ballot_id = text_parts[2]
-        vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id)
-        if vote is None:
-            vote = model.Vote()
-            vote.ballot_id = ballot_id
-            vote.user_id = user_name
-        vote.value = -1
-        model.db.session.add(vote)
-        model.db.session.commit()
+        ballot_id, error = _do_vote(text_parts, user_name, -1)
+        if error:
+            return error
         return _slack_reply("{} voted no for ballot {}".format(user_name, ballot_id))
     elif command in abstain_words:
-        ballot_id = text_parts[2]
-        vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id)
-        if vote is None:
-            vote = model.Vote()
-            vote.ballot_id = ballot_id
-            vote.user_id = user_name
-        vote.value = 0
-        model.db.session.add(vote)
-        model.db.session.commit()
+        ballot_id, error = _do_vote(text_parts, user_name, 0)
+        if error:
+            return error
         return _slack_reply("{} voted abstain for ballot {}".format(user_name))
     else:
         reply = "user_id: {}\nuser_name: {}\ntext: {}\ncommand: {}".format(user_id, user_name, text, command)
         return _slack_reply(reply)
+
+
+def _do_vote(text_parts, user_name, vote_value):
+    ballot_id, error = _get_balllot_id(text_parts)
+    if error:
+        return None, error
+    vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id)
+    if vote is None:
+        vote = model.Vote()
+        vote.ballot_id = ballot_id
+        vote.user_id = user_name
+    vote.value = vote_value
+    model.db.session.add(vote)
+    model.db.session.commit()
+    return ballot_id, None
+
+
+def _get_balllot_id(text_parts):
+    ballot_id_text = text_parts[2]
+    error = None
+    if not re.match("\d+", ballot_id_text):
+        error = _slack_reply("Invalid ballot Id:", ballot_id_text)
+    else:
+        ballot_id = int(ballot_id_text)
+    return ballot_id, error
 
 
 @app.route('/authorize_callback')
