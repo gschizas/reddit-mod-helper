@@ -45,6 +45,9 @@ class Ballots(db.Model):
     description = db.Column('Description', db.UnicodeText)
     status = db.Column('Status', db.SmallInteger)
     opened_by = db.Column('OpenedBy', db.String(64))
+    start_date = db.Column('StartDate', db.DateTime)
+    end_date = db.Column('EndDate', db.DateTime)
+    is_active = db.Column('Active', db.Boolean)
 
 
 class Vote(db.Model):

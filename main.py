@@ -8,21 +8,17 @@ import logging
 import urllib.parse
 import re
 import os
-
 import PIL
 import PIL.Image
 import praw
 import requests
 import tinycss
-
 from flask.ext.babel import Babel, format_datetime
 from bs4 import BeautifulSoup
 from flask import Flask, abort, render_template, make_response, request, redirect, url_for, session, flash, \
     after_this_request, jsonify, g
-
 from flask_wtf import Form
 from wtforms import StringField
-
 # from SqliteSession import SqliteSessionInterface
 
 import model
@@ -612,7 +608,18 @@ def votebot():
     yes_words = ['yes', 'yay', 'si', 'oui', 'ja', 'ναι', 'true', 'upvote', '+', '+1', '1']
     no_words = ['no', 'nay', 'non', 'nein', 'όχι', 'false', 'downvote', '-', '-1']
     abstain_words = ['abstain', 'meh', 'empty', '0']
-    if command == 'start':
+    if command == 'help':
+        return _slack_reply("""
+        help: this help
+        list: list all active ballots
+        mine: list all ballots created by me
+        create <title>: create a new ballot
+        delete <id>: delete a ballot
+        vote <id> """ + ','.join(yes_words) + """: positive vote for ballot <id>
+        vote <id> """ + ','.join(no_words) + """: negative vote for ballot <id>
+        result <id>: current vote results
+        """)
+    elif command == 'create':
         ballot_title = text_parts[2]
         ballot = model.Ballots.query.filter_by(title=ballot_title).first()
         if ballot is not None:
@@ -624,13 +631,13 @@ def votebot():
         model.db.session.add(ballot)
         model.db.session.commit()
         return _slack_reply(command + ":" + ballot_title)
-    elif command == 'stop':
+    elif command == 'finish':
         ballot_title = text_parts[2]
 
         return _slack_reply(command + ":" + ballot_title)
     elif command == 'list':
         return 'these are the vote subjects you have open:'
-    elif command == 'mine':
+    elif command in ['my', 'mine']:
         pass
     elif command in yes_words:
         return _slack_reply("{} voted yes".format(user_name))
