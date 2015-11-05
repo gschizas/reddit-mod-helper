@@ -653,11 +653,36 @@ def votebot():
         return _slack_reply(result)
     elif command in yes_words:
         ballot_id = text_parts[2]
+        vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id)
+        if vote is None:
+            vote = model.Vote()
+            vote.ballot_id = ballot_id
+            vote.user_id = user_name
+        vote.value = +1
+        model.db.session.add(vote)
+        model.db.session.commit()
         return _slack_reply("{} voted yes for ballot {}".format(user_name, ballot_id))
     elif command in no_words:
         ballot_id = text_parts[2]
+        vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id)
+        if vote is None:
+            vote = model.Vote()
+            vote.ballot_id = ballot_id
+            vote.user_id = user_name
+        vote.value = -1
+        model.db.session.add(vote)
+        model.db.session.commit()
         return _slack_reply("{} voted no for ballot {}".format(user_name, ballot_id))
     elif command in abstain_words:
+        ballot_id = text_parts[2]
+        vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id)
+        if vote is None:
+            vote = model.Vote()
+            vote.ballot_id = ballot_id
+            vote.user_id = user_name
+        vote.value = 0
+        model.db.session.add(vote)
+        model.db.session.commit()
         return _slack_reply("{} voted abstain for ballot {}".format(user_name))
     else:
         reply = "user_id: {}\nuser_name: {}\ntext: {}\ncommand: {}".format(user_id, user_name, text, command)

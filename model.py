@@ -51,11 +51,11 @@ class Ballots(db.Model):
 
 
 class Vote(db.Model):
-    __tablename = 'Votes'
+    __tablename__ = 'Votes'
 
     vote_id = db.Column('Id', db.Integer, primary_key=True, unique=True)
-    subject_id = db.Column('SubjectId', db.Integer, db.ForeignKey('Ballots.Id'))
-    subject = db.relationship(Ballots)
+    ballot_id = db.Column('BallotId', db.Integer, db.ForeignKey('Ballots.Id'))
+    ballot = db.relationship(Ballots)
     user_id = db.Column('UserId', db.String(64))
     value = db.Column('Value', db.SmallInteger)
 
