@@ -619,6 +619,12 @@ def votebot():
         vote <id> """ + ','.join(no_words) + """: negative vote for ballot <id>
         result <id>: current vote results
         """)
+    elif command == 'list':
+        result = '\n'.join(
+            ['{}. "{}" by {}'.format(ballot.id, ballot.title, ballot.opened_by)
+             for ballot in model.Ballots.query]
+        )
+        return _slack_reply(result)
     elif command == 'create':
         ballot_title = text_parts[2]
         ballot = model.Ballots.query.filter_by(title=ballot_title).first()
