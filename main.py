@@ -671,7 +671,7 @@ def _do_vote(text_parts, user_name, vote_value):
     ballot_id, error = _get_balllot_id(text_parts)
     if error:
         return None, error
-    vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id)
+    vote = model.Vote.query.filter_by(user_id=user_name, ballot_id=ballot_id).first()
     if vote is None:
         vote = model.Vote()
         vote.ballot_id = ballot_id
