@@ -667,7 +667,7 @@ def votebot():
         if error:
             return error
         from sqlalchemy.sql import func
-        ballot = model.db.session.query.filter_by(ballot_id=ballot_id).first()
+        ballot = model.Ballots.query.filter_by(ballot_id=ballot_id).first()
         if ballot is None:
             return _slack_reply("Unknown ballot id: {}".ballot_id)
         votes = model.Vote.query.filter_by(ballot_id=ballot_id).all()
