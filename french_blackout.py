@@ -8,7 +8,8 @@ subreddits = ['gschizas']
 # prod
 # subreddits = ['europe', 'greece']
 
-r = RedditAgent()
+#r = RedditAgent()
+r = RedditAgent(ini_section='blackout', user_agent='French Blackout helper by /u/gschizas version 0.1')
 
 href = 'http://www.consilium.europa.eu/en/press/press-releases/2015/11/14-joint-eu-statement-terrorist-attacks-paris/'
 stylesheet_addon = '''.side a[href*="''' + href + '''"] {
