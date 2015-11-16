@@ -6,4 +6,4 @@ if [ "$dt" != "2015-11-16 06:00" ] && [ "$dt" != "2015-11-16 06:05" ] ; then
     exit
 fi
 # rest of the script
-echo python3 ~/french_blackout.py
+python $OPENSHIFT_REPO_DIR/french_blackout.py
