@@ -78,48 +78,6 @@ def run_praw_tasks():
         with open('flair-bot.ini', 'w') as f:
             cfg.write(f)
 
-
-    # flair_text = 'vote with your wallet here 1M1Pqp1JtDPDmU5ozN7SrCXCeVaEbh739A'
-    # re.match('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # re.test('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # re.search('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # bitcoin_address = re.search('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # bitcoin_address.string
-    # bitcoin_address.match
-    # bitcoin_address
-    # bitcoin_address.span
-    # bitcoin_address.span()
-    # str(bitcoin_address)
-    # bitcoin_address.value
-    # re.search('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # re.findall('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # re.findall('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # bitcoin_addresses = re.findall('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # del bitcoin_address
-    # bitcoin_addresses
-    # bitcoin_addresses = re.findall('x[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # bitcoin_addresses
-    # if bitcoin_addresses:
-    #     print('yes')
-    # bitcoin_addresses = re.findall('[13][a-km-zA-HJ-NP-Z0-9]{26,33}', flair_text)
-    # from hashlib import sha256
-
-    # check_bc(bitcoin_addresses[0])
-    # bitcoin_addresses = bitcoin_addresses * 2
-    # bitcoin_addresses
-    # [check_bc(bc) for bc in bitcoin_addresses]
-    # if any([check_bc(bc) for bc in bitcoin_addresses]):
-    #     print('yes')
-    # if any([not check_bc(bc) for bc in bitcoin_addresses]):
-    #     print('yes')
-    # else:
-    #     print('no')
-    # cfg = configparser.ConfigParser()
-    # cfg = configparser.ConfigParser()
-    # cfg.add_section('search')
-    # search_space = [('greece', 'kerato'), ('europe', 'bleahbloh')]
-    # cfg.set('search', 'search_list', search_space)
-
     r.clear_authentication()
 
 
