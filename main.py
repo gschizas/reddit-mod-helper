@@ -198,10 +198,7 @@ def get_empty_submissions(subreddit):
         if s.link_flair_css_class is None]
     subreddit = subreddit.lower()
     if subreddit == 'greece':
-        flair_order = ['politics', 'society', 'culture', 'economy', 'sports', 'technology', 'entertainment', 'tourism',
-                       'questions', 'funny', 'meta']
-        flair_choices = [f for f in
-                         sorted(link_flairs['choices'], key=lambda f: flair_order.index(f['flair_css_class']))]
+        flair_choices = [f for f in link_flairs['choices']]
     elif subreddit == 'iama':
         flair_choices = [f for f in sorted(link_flairs['choices'], key=lambda f: f['flair_css_class'])
                          if not f['flair_css_class'].endswith('-live')]
