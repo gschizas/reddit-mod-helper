@@ -1,4 +1,5 @@
-# coding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from bot import RedditAgent
 r = RedditAgent(ini_section='muteuser')
