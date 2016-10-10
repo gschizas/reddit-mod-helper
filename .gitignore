@@ -119,3 +119,4 @@ target/
 session.db
 bot.ini
 /.venv
+flair_list-*.json
