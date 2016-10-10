@@ -88,7 +88,7 @@ class RedditAgent(praw.Reddit):
         self.config.decode_html_entities = True
         self.access_token = self.cfg[self.section].get('access_token', '')
         self.refresh_token = self.cfg[self.section].get('refresh_token', '')
-        redirect_url = "http://127.0.0.1:65010/authorize_callback"
+        redirect_url = "http://example.com/authorize_callback"
         self.set_oauth_app_info(self.client, self.secret, redirect_url)
         if self.access_token == '' or self.refresh_token == '':
             url = self.get_authorize_url('reddit_scratch', scope, True)
